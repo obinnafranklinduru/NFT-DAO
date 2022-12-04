@@ -24,6 +24,12 @@ contract BinnaDevsDAO is Ownable {
         mapping(uint256 => bool) voter;
     }
 
+    // Create an enum named Vote containing possible options for a vote
+    enum Vote{
+        YAY, // YAY - 0 
+        NAY // NAY - 1
+        }
+
     // Create a mapping of ID to Proposal to track all of the proposals
     mapping(uint256 => Proprosal) public proprosals;
 
@@ -55,11 +61,19 @@ contract BinnaDevsDAO is Ownable {
      * 
      * @return Returns the proposal index for the newly created proposal
      */
-    function createProposal()
+    function createProposal(uint256 _nftTokenId)
     external
     nftHolderOnly
+    returns(uint256)
     {
+        require(nftMarketplace.available(_nftTokenId) == true, "NFT_NOT_FOR_SALE");
+        Proprosal storage proposal = proprosals[numProposals];
 
+        proposal.nftTokenId = _nftTokenId;
+        proposal.deadline = block.timestamp + 5 minutes;
+
+        numProposals++;
+        return numProposals -= 1;
     }
 
     /**
@@ -69,11 +83,35 @@ contract BinnaDevsDAO is Ownable {
      * @param proposalIndex - the index of the proposal to vote on in the proposals array
      * @param vote - the type of vote they want to cast
      */
-    function voteOnProposal()
+    function voteOnProposal(uint256 proposalIndex, Vote vote)
     external
     nftHolderOnly
     {
+        require(proprosals[proprosalIndex] > block.timestamp, "DEADLINE_EXCEEDED");
+        // create an instance of Proprosal struct
+        Proprosal storage proposal = proprosals[proposalIndex];
 
+        uint256 voterNFTBalance = binnaDevsNFT.balanceOf(msg.sender);
+        // numVotes store number of NFTs a user can used to vote
+        uint256 numVotes = 0;
+
+        // Calculate how many NFTs are owned by the voter
+        // that haven't already been used for voting on this proposal
+        for(uint256 i = 0; i < voterNFTBalance; i++){
+            uint256 tokenId = binnaDevsNFT.tokenOfOwnerByIndex(msg.sender, i);
+            if(proposal.voter[tokenId] == false){
+                numVotes++;
+                proposal.voter[tokenId] == true;
+            }
+        }
+
+        require(numVotes > 0, "ALREADY_VOTED");
+
+        if(vote == Vote.YAY){
+            proposal.yayVotes += numVotes;
+        }else{
+            proposal.nayVotes += numVotes;
+        }
     }
 
     /**
@@ -82,11 +120,12 @@ contract BinnaDevsDAO is Ownable {
      * 
      * @param proposalIndex - the index of the proposal to execute in the proposals array
      */
-    function executeProposal()
+    function executeProposal(uint256 proposalIndex)
     external
     nftHolderOnly
     {
-
+        require(proprosals[proprosalIndex].deadline <= block.timestamp,"DEADLINE_NOT_EXCEEDED");
+        require(proprosals[proprosalIndex].executed == false, "PROPOSAL_ALREADY_EXECUTED");
     }
 
      // Function to receive Ether. msg.data must be empty
