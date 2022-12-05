@@ -1,5 +1,4 @@
 import { Contract, providers } from "ethers";
-import { formatEther } from "ethers/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import Web3Modal from "web3modal";
 
@@ -130,9 +129,8 @@ export default function Home() {
   const getUserNFTBalance = async () => {
     try {
       const signer = await getProviderOrSigner(true);
-      const contract = getBinnadevsNFTContractInstance;
-      const address = await signer.getAddress();
-      const balance = await contract.balanceOf(address);
+      const contract = getBinnadevsNFTContractInstance(signer);
+      const balance = await contract.balanceOf(signer.getAddress());
       setNftBalance(parseInt(balance.toString()));
     } catch (err) {
       console.error(err);
@@ -250,17 +248,111 @@ export default function Home() {
 
   // Render the contents of the appropriate tab based on `selectedTab`
   function renderTabs() {
-    
+    if (selectedTab === "Create Proposal") {
+      return renderCreateProposalTab();
+    } else if (selectedTab === "View Proposals") {
+      return renderViewProposalsTab();
+    } else {
+      return null;
+    }
   }
 
   // Renders the 'Create Proposal' tab content
   function renderCreateProposalTab() {
+    if (loading) {
+      return (
+        <div className={styles.description}>
+          Loading... Waiting for transaction...
+        </div>
+      )
+    } else if (nftBalance === 0) {
+      return (
+        <div className={styles.description}>
+          You do not own any BinnaDevs NFTs. <br />
+          <b>You cannot create or vote on proposals</b>
+        </div>
+      )
+    } else {
+      return (
+        <div className={styles.description}>
+          <label>Fake NFT Token ID to Purchase: </label>
 
+          <input
+            placeholder="0"
+            type="number"
+            onChange={(e) => setFakeNftTokenId(e.target.value)}
+          />
+
+          <button className={styles.button2} onClick={createProposal}>
+            Create
+          </button>
+        </div>
+      )
+    }
   }
 
   // Renders the 'View Proposals' tab content
   function renderViewProposalsTab() {
+    if(loading){
+      return (
+        <div className={styles.description}>
+          Loading... Waiting for transaction...
+        </div>
+      )
+    }else if(proposals.length === 0){
+      return (
+        <div className={styles.description}>No proposals have been created</div>
+      )
+    } else {
+      return (
+        <div>
+          {proposals.map((p, index) => (
+            <div key={index} className={styles.description}>
+              <p>Proposal ID: {p.proposalId}</p>
+              <p>Fake NFT to Purchase: {p.nftTokenId}</p>
+              <p>Deadline: {p.deadline.toLocaleString()}</p>
+              <p>Yay Votes: {p.yayVotes}</p>
+              <p>Nay Votes: {p.nayVotes}</p>
+              <p>Executed?: {p.executed.toString()}</p>
 
+              {p.deadline.getTime() > Date.now() && !p.executed ? (
+                <div className={styles.flex}>
+                  <button
+                    className={styles.button2}
+                    onClick={() => voteOnProposal(p.proposalId, "YAY")}
+                  >
+                    Vote YAY
+                  </button>
+
+                  <button
+                    className={styles.button2}
+                    onClick={() => voteOnProposal(p.proposalId, "NAY")}
+                  >
+                    Vote NAY
+                  </button>
+                </div>
+              ) :
+                p.deadline.getTime() < Date.now() && !p.executed ? (
+                  <div className={styles.flex}>
+                    <button
+                      className={styles.button2}
+                      onClick={() => executeProposal(p.proposalId)}
+                    >
+                      Execute Proposal{" "}
+                      {p.yayVotes > p.nayVotes ? "(YAY)" : "(NAY)"}
+                    </button>
+                  </div>
+                ) :
+                  (
+                    <div className={styles.description}>Proposal Executed</div>
+                  )
+            }
+            </div>
+          )
+          )}
+        </div>
+      )
+    }
   }
 
   return (
@@ -273,6 +365,7 @@ export default function Home() {
         setSelectedTab = {setSelectedTab}
         renderTabs = {renderTabs}
       />
+      <Footer />
     </>
   )
 }
