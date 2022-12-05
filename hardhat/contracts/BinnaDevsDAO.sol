@@ -21,7 +21,7 @@ contract BinnaDevsDAO is Ownable {
         bool executed;
         // voters - a mapping of BinnaDevsNFT tokenIDs to booleans indicating whether 
         // that NFT has already been used to cast a vote or not
-        mapping(uint256 => bool) voter;
+        mapping(uint256 => bool) voters;
     }
 
     // Create an enum named Vote containing possible options for a vote
@@ -31,10 +31,10 @@ contract BinnaDevsDAO is Ownable {
         }
 
     // Create a mapping of ID to Proposal to track all of the proposals
-    mapping(uint256 => Proprosal) public proprosals;
+    mapping(uint256 => Proprosal) public proposals;
 
     // Number of proposals that have been created
-    uint256 public numProposals;
+    uint256 public numProposals = 1;
 
     IFakeNFTMarketplace nftMarketplace;
     IBinnaDevsNFT binnaDevsNFT;
@@ -50,7 +50,7 @@ contract BinnaDevsDAO is Ownable {
     }
 
     modifier nftHolderOnly(){
-        require(binnaDevNFT.balanceOf(msg.sender) > 0, "NOT_A_DAO_MEMBER");
+        require(binnaDevsNFT.balanceOf(msg.sender) > 0, "NOT_A_DAO_MEMBER");
         _;
     }
 
@@ -67,7 +67,7 @@ contract BinnaDevsDAO is Ownable {
     returns(uint256)
     {
         require(nftMarketplace.available(_nftTokenId) == true, "NFT_NOT_FOR_SALE");
-        Proprosal storage proposal = proprosals[numProposals];
+        Proprosal storage proposal = proposals[numProposals];
 
         proposal.nftTokenId = _nftTokenId;
         proposal.deadline = block.timestamp + 5 minutes;
@@ -87,9 +87,9 @@ contract BinnaDevsDAO is Ownable {
     external
     nftHolderOnly
     {
-        require(proprosals[proprosalIndex] > block.timestamp, "DEADLINE_EXCEEDED");
+        require(proposals[proposalIndex].deadline > block.timestamp, "DEADLINE_EXCEEDED");
         // create an instance of Proprosal struct
-        Proprosal storage proposal = proprosals[proposalIndex];
+        Proprosal storage proposal = proposals[proposalIndex];
 
         uint256 voterNFTBalance = binnaDevsNFT.balanceOf(msg.sender);
         // numVotes store number of NFTs a user can used to vote
@@ -99,9 +99,9 @@ contract BinnaDevsDAO is Ownable {
         // that haven't already been used for voting on this proposal
         for(uint256 i = 0; i < voterNFTBalance; i++){
             uint256 tokenId = binnaDevsNFT.tokenOfOwnerByIndex(msg.sender, i);
-            if(proposal.voter[tokenId] == false){
+            if(proposal.voters[tokenId] == false){
                 numVotes++;
-                proposal.voter[tokenId] == true;
+                proposal.voters[tokenId] == true;
             }
         }
 
@@ -124,8 +124,26 @@ contract BinnaDevsDAO is Ownable {
     external
     nftHolderOnly
     {
-        require(proprosals[proprosalIndex].deadline <= block.timestamp,"DEADLINE_NOT_EXCEEDED");
-        require(proprosals[proprosalIndex].executed == false, "PROPOSAL_ALREADY_EXECUTED");
+        require(proposals[proposalIndex].deadline <= block.timestamp,"DEADLINE_NOT_EXCEEDED");
+        require(proposals[proposalIndex].executed == false, "PROPOSAL_ALREADY_EXECUTED");
+
+        // If the proposal has more YAY votes than NAY votes
+        // purchase the NFT from the FakeNFTMarketplace
+        Proprosal storage proposal = proposals[proposalIndex];
+        if(proposal.yayVotes > proposal.nayVotes){
+            uint nftPrice = nftMarketplace.getPrice();
+            
+            require(address(this).balance > nftPrice, "NOT_ENOUGH_FUNDS");
+
+            nftMarketplace.purchase{value: nftPrice}(proposal.nftTokenId);
+        }
+        
+        proposal.executed = true;
+    }
+
+    /// @dev withdrawEther allows the contract owner (deployer) to withdraw the ETH from the contract
+    function withdrawEther() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
     }
 
      // Function to receive Ether. msg.data must be empty

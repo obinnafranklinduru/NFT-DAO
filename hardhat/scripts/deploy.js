@@ -1,30 +1,25 @@
 const { ethers } = require("hardhat");
-const { NFT_CONTRACT_ADDRESS } = require("../constants/");
+const { NFT_CONTRACT_ADDRESS } = require("../constants/index");
 
 async function main() {
-
-  const FakeNFTMarketplaceContract = await ethers.getContractFactory("FakeNFTMarketplace");
-
-  const deployFakeNFTMarketplaceContract = await FakeNFTMarketplaceContract.deploy();
-
+  const fakeNFTMarketplaceContract = await ethers.getContractFactory("FakeNFTMarketplace");
+  const deployFakeNFTMarketplaceContract = await fakeNFTMarketplaceContract.deploy();
   await deployFakeNFTMarketplaceContract.deployed();
+  console.log("NFTMarketplaceContract address => " + deployFakeNFTMarketplaceContract.address);
 
-  const BinnaDevsDAOContract = await ethers.getContractFactory("BinnaDevsDAO");
-
-  const deployBinnaDevsDAOContract = await BinnaDevsDAOContract(
+  const nftContract = NFT_CONTRACT_ADDRESS;
+  const binnaDevsDAOContract = await ethers.getContractFactory("BinnaDevsDAO");
+  const deployBinnaDevsDAOContract = await binnaDevsDAOContract.deploy(
     deployFakeNFTMarketplaceContract.address,
-    NFT_CONTRACT_ADDRESS,
-    {value: ethers.utils.parseEther("1")}
+    nftContract,
+    {
+      value: ethers.utils.parseEther("0.01")
+    }
   );
-
   await deployBinnaDevsDAOContract.deployed();
-
-   console.log(`FakeNFTMarketplaceContract => ${deployBinnaDevsDAOContract.address}`);
-  console.log(`FakeNFTMarketplaceContract => ${deployFakeNFTMarketplaceContract.address}`);
+  console.log("BinnaDevsDAOContract address => " + deployBinnaDevsDAOContract.address);
+  
 }
-
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;

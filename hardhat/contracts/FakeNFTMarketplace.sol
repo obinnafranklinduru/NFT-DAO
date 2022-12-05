@@ -7,7 +7,7 @@ contract FakeNFTMarketplace {
     mapping(uint256 => address) public tokens;
 
     /// @dev Set the purchase price for each Fake NFT
-    uint256 nftPrice = 0.1 ether;
+    uint256 nftPrice = 0.001 ether;
 
     /** 
      * @dev purchase() accepts ETH and marks the owner of the given tokenId 
@@ -16,7 +16,7 @@ contract FakeNFTMarketplace {
      * @param _tokenId - the fake NFT token Id to purchase
      */ 
     function purchase(uint256 _tokenId) external payable {
-        require(msg.value == nftPrice, "This NFT costs 0.1 ether");
+        require(msg.value == nftPrice, "This NFT costs 0.001 ether");
         // address(0) = 0x0000000000000000000000000000000000000000
         require(tokens[_tokenId] == address(0), "NFT has already been minted");
         
