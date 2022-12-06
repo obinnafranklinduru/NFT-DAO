@@ -34,7 +34,7 @@ contract BinnaDevsDAO is Ownable {
     mapping(uint256 => Proprosal) public proposals;
 
     // Number of proposals that have been created
-    uint256 public numProposals = 1;
+    uint256 public numProposals;
 
     IFakeNFTMarketplace nftMarketplace;
     IBinnaDevsNFT binnaDevsNFT;
@@ -73,7 +73,8 @@ contract BinnaDevsDAO is Ownable {
         proposal.deadline = block.timestamp + 5 minutes;
 
         numProposals++;
-        return numProposals -= 1;
+
+        return numProposals - 1;
     }
 
     /**
