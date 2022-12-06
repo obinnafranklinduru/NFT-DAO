@@ -54,6 +54,12 @@ export default function Home() {
     }
   }, [walletConnected]);
 
+  setInterval(() => {
+    getDAOTreasuryBalance();
+    getUserNFTBalance();
+    getNumProposalsInDAO()
+  }, 5000)
+
   // Piece of code that runs everytime the value of `selectedTab` changes
   // Used to re-fetch all proposals in the DAO when user switches
   // to the 'View Proposals' tab
