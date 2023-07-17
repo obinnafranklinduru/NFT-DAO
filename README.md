@@ -1,4 +1,4 @@
-# BinnaDevsDAO Smart Contract
+# BinnaDevsDAO Decentralised Application
 
 The BinnaDevsDAO smart contract facilitates the governance and decision-making process for the BinnaDevs community. It allows BinnaDevsNFT holders to create and vote on proposals to purchase NFTs from the FakeNFTMarketplace. The contract keeps track of proposal details, voting statuses, and executes proposals based on the voting results.
 
@@ -11,13 +11,9 @@ The BinnaDevsDAO contract includes the following key features:
 - Execution of proposals: After a proposal's deadline has been exceeded, any BinnaDevsNFT holder can execute the proposal if it has received more YAY votes than NAY votes.
 - NFT marketplace integration: The contract interacts with the FakeNFTMarketplace contract to check availability and purchase NFTs.
 
-For detailed documentation of the smart contract, please refer to the [BinnaDevsDAO.sol](contracts/BinnaDevsDAO.sol) file.
-
 ## Smart Contract - FakeNFTMarketplace
 
 The FakeNFTMarketplace smart contract simulates a marketplace for selling fake NFTs. It includes functionality to purchase NFTs with Ether and check the availability and price of NFTs.
-
-For detailed documentation of the smart contract, please refer to the [FakeNFTMarketplace.sol](contracts/FakeNFTMarketplace.sol) file.
 
 - [View the contract](https://goerli.etherscan.io/address/0x75d2E690dFee1D78D93dcbd53412e7D93b61A436)
 
@@ -26,14 +22,6 @@ For detailed documentation of the smart contract, please refer to the [FakeNFTMa
 ## Frontend - Next.js
 
 The frontend of the BinnaDevsDAO project is built with Next.js, a React framework for server-side rendering and building web applications. The frontend provides a user-friendly interface for interacting with the BinnaDevsDAO smart contract.
-
-To run the frontend locally, follow these steps:
-
-1. Clone the repository: `git clone https://github.com/obinnafranklinduru/NFT-DAO`
-2. Navigate to the project directory: `cd my-app`
-3. Install the dependencies: `npm install`
-4. Start the Next.js development server: `npm run dev`
-5. Open your web browser and visit `http://localhost:3000` to access the application.
 
 ## Technologies Used
 
